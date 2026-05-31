@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCTS Complete Lecture - Monte Carlo Tree Search Implementation</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .page {
+            padding: 20mm;
+            min-height: 297mm;
+            page-break-after: always;
+            background: white;
+        }
+        
+        .page:last-child {
+            page-break-after: auto;
+        }
+        
+        /* Header Styles */
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin: -20mm -20mm 30px -20mm;
+            border-radius: 0 0 20px 20px;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header .subtitle {
+            font-size: 16px;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+        
+        /* Section Styles */
+        h2 {
+            color: #667eea;
+            font-size: 24px;
+            margin: 25px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        h3 {
+            color: #764ba2;
+            font-size: 18px;
+            margin: 20px 0 12px 0;
+        }
+        
+        h4 {
+            color: #555;
+            font-size: 16px;
+            margin: 15px 0 10px 0;
+        }
+        
+        /* Code Block Styles */
+        pre {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            border-radius: 6px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        code {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+        
+        /* List Styles */
+        ul, ol {
+            margin: 10px 0 10px 25px;
+        }
+        
+        li {
+            margin: 8px 0;
+        }
+        
+        /* Box Styles */
+        .info-box {
+            background: #e8f4fd;
+            border-left: 5px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        tr:hover {
+            background: #e8f4fd;
+        }
+        
+        /* Flow Diagram */
+        .flow-diagram {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            font-family: monospace;
+            line-height: 2;
+        }
+        
+        .flow-step {
+            background: white;
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 6px;
+            border: 2px solid #667eea;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .arrow {
+            color: #667eea;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        /* Tree Diagram */
+        .tree-diagram {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: monospace;
+            overflow-x: auto;
+        }
+        
+        /* Highlight Text */
+        .highlight {
+            background: linear-gradient(120deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        
+        /* Formula Box */
+        .formula {
+            background: white;
+            border: 2px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Grid Layout */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 15px 0;
+        }
+        
+        .grid-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+            }
+            
+            .page {
+                page-break-after: always;
+            }
+            
+            .page:last-child {
+                page-break-after: auto;
+            }
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        
+        .badge-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .badge-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .badge-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .workflow-img {
+            width: 100%;
+            max-width: 100%;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .concept-box {
+            background: #f8f9fa;
+            border: 2px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+
+        .concept-box h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Page 1: Cover & RL Basics -->
+        <div class="page">
+            <div class="header">
+                <h1>🎯 MCTS in 3*3*3 tictactoe with Symmetric Search Optimization </h1>
+
+            </div>
+            
+            <h2>1. Reinforcement Learning Review</h2>
+            
+            <h3>1.1 Reinforcement Learning Framework</h3>
+            <div class="flow-diagram">
+                <div class="flow-step">s₁, a₁, r₁</div>
+                <span class="arrow">→</span>
+                <div class="flow-step">s₂, a₂, r₂</div>
+                <span class="arrow">→</span>
+                <div class="flow-step">s₃, a₃, r₃</div>
+                <span class="arrow">→</span>
+                <div class="flow-step">s₄, a₄, r₄</div>
+            </div>
+            
+            <div class="info-box">
+                <strong>Core Elements:</strong>
+                <ul>
+                    <li><strong>s (state)</strong>: Describes the current environment</li>
+                    <li><strong>a (action)</strong>: Executable behavior</li>
+                    <li><strong>r (reward)</strong>: Feedback after executing an action</li>
+                </ul>
+            </div>
+            
+            <h3>1.2 Three Learning Methods</h3>
+            
+            <div class="grid-2">
+                <div class="grid-item">
+                    <h4><span class="badge badge-primary">Value-based</span></h4>
+                    <ul>
+                        <li>For finite action spaces</li>
+                        <li>Indirect decision: define value</li>
+                        <li>Build value table: Q(s,a) → value</li>
+                        <li>Choose action with maximum value</li>
+                    </ul>
+                </div>
+                
+                <div class="grid-item">
+                    <h4><span class="badge badge-success">Policy-based</span></h4>
+                    <ul>
+                        <li>Directly learn policy function</li>
+                        <li>π(s) → a</li>
+                        <li>Map state directly to action</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="grid-item">
+                <h4><span class="badge badge-warning">Actor-Critic</span></h4>
+                <ul>
+                    <li>Combines value-based and policy-based</li>
+                    <li><strong>Actor</strong> handles action selection</li>
+                    <li><strong>Critic</strong> handles value evaluation</li>
+                </ul>
+            </div>
+            
+            <h2>2. MCTS Theoretical Foundation</h2>
+            
+            <h3>2.1 What is MCTS?</h3>
+            <div class="success-box">
+                MCTS is a <span class="highlight">random simulation-based search algorithm</span> that progressively builds a search tree through random simulation and node backpropagation, approximating optimal decisions within limited computational time.
+            </div>
+            
+            <p><strong>Particularly suitable for:</strong></p>
+            <ul>
+                <li>Massive decision trees that cannot be fully expanded</li>
+                <li>Need to balance exploration vs exploitation</li>
+                <li>Game AI (e.g., Go, Chess, Tic-Tac-Toe)</li>
+            </ul>
+        </div>
+        
+        <!-- Page 2: Node Structure & 4 Steps -->
+        <div class="page">
+            <h3>2.2 Tree Structure Design</h3>
+            
+            <h4>Node Structure</h4>
+            <pre>Node:
+├── board_state      # Board state
+├── player           # Current player
+├── parent           # Parent node
+├── children         # Child node dictionary {state_id: node}
+├── visits           # Visit count
+├── score            # Accumulated score
+└── is_terminal      # Terminal state flag</pre>
+            
+            <h4>Game Tree Example (Tic-Tac-Toe)</h4>
+            <div class="tree-diagram">
+                <pre>                    node₀ (root)
+                   /  |  \  ...
+                  /   |   \
+              node₁ node₂ node₃ ... node₈
+              /|\
+            ...</pre>
+            </div>
+            
+            <h2>3. MCTS Four Steps</h2>
+            
+            <div class="flow-diagram">
+                <div class="flow-step">1️⃣ Selection</div>
+                <span class="arrow">→</span>
+                <div class="flow-step">2️⃣ Expansion</div>
+                <span class="arrow">→</span>
+                <div class="flow-step">3️⃣ Simulation</div>
+                <span class="arrow">→</span>
+                <div class="flow-step">4️⃣ Backpropagation</div>
+            </div>
+            
+            <h3>3.1 Selection</h3>
+            <div class="info-box">
+                <strong>Goal:</strong> Select from root node to a node that is "not fully expanded"
+            </div>
+            
+            <div class="concept-box">
+                <h4>Key Concepts:</h4>
+                <ul>
+                    <li><strong>Fully Expanded:</strong> All possible actions have generated corresponding child nodes</li>
+                    <li><strong>UCB Selection:</strong> Choose child with highest UCB score</li>
+                    <li><strong>Iteration:</strong> Continue until finding an unexpanded node</li>
+                </ul>
+            </div>
+            
+            <h3>3.2 Expansion</h3>
+            <div class="info-box">
+                <strong>Goal:</strong> Create a new child node for the selected node
+            </div>
+            
+            <div class="concept-box">
+                <h4>Key Concepts:</h4>
+                <ul>
+                    <li><strong>State Generation:</strong> Generate all legal next states</li>
+                    <li><strong>Canonical ID:</strong> Use symmetric optimization to identify equivalent states</li>
+                    <li><strong>Node Creation:</strong> Build new TreeNode with parent reference</li>
+                    <li><strong>Track Expansion:</strong> Update is_fully_expanded flag when all states explored</li>
+                </ul>
+            </div>
+            
+            <h3>3.3 Simulation/Rollout</h3>
+            <div class="info-box">
+                <strong>Goal:</strong> Randomly simulate from new node until game ends
+            </div>
+            
+            <div class="concept-box">
+                <h4>Key Concepts:</h4>
+                <ul>
+                    <li><strong>Random Playout:</strong> Make random legal moves until terminal state</li>
+                    <li><strong>Score Calculation:</strong> Win: +10, Loss: -10, Draw: 0</li>
+                    <li><strong>Perspective:</strong> Score from current player's perspective</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Page 3: Backpropagation, UCB & Complete Algorithm -->
+        <div class="page">
+            <h3>3.4 Backpropagation</h3>
+            <div class="info-box">
+                <strong>Goal:</strong> Propagate simulation results back to all ancestor nodes
+            </div>
+            
+            <div class="concept-box">
+                <h4>Update Rules:</h4>
+                <ul>
+                    <li>Increment each node's <code>visits</code> by 1</li>
+                    <li>Add simulation <code>score</code> to each node</li>
+                    <li>Traverse upward to root node</li>
+                </ul>
+            </div>
+            
+            <h2>4. UCB (Upper Confidence Bound) Formula</h2>
+            
+            <div class="formula">
+                UCB = sign × avg_reward + exploration_term
+            </div>
+            
+            <h3>4.1 UCB Formula Components</h3>
+            
+            <table>
+                <tr>
+                    <th>Component</th>
+                    <th>Formula</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><strong>sign</strong></td>
+                    <td><code>1 if player=='x'<br>-1 if player=='o'</code></td>
+                    <td>Adjusts score direction based on player perspective</td>
+                </tr>
+                <tr>
+                    <td><strong>avg_reward</strong></td>
+                    <td><code>node.score / node.visits</code></td>
+                    <td><span class="highlight">Exploitation</span>: Prioritize high average score</td>
+                </tr>
+                <tr>
+                    <td><strong>exploration_term</strong></td>
+                    <td><code>c × √(ln(total_visits) / node.visits)</code></td>
+                    <td><span class="highlight">Exploration</span>: Prioritize less visited nodes<br>c: exploration constant (typically √2)</td>
+                </tr>
+            </table>
+            
+            <h3>4.2 UCB Balance Mechanism</h3>
+            
+            <table>
+                <tr>
+                    <th>Scenario</th>
+                    <th>avg_reward</th>
+                    <th>exploration_term</th>
+                    <th>Result</th>
+                </tr>
+                <tr>
+                    <td>Frequently visited & high win rate</td>
+                    <td style="color: green;">High</td>
+                    <td style="color: orange;">Low</td>
+                    <td>Medium UCB</td>
+                </tr>
+                <tr>
+                    <td>Rarely visited</td>
+                    <td>?</td>
+                    <td style="color: red; font-weight: bold;">High</td>
+                    <td style="background: #fff3cd; font-weight: bold;">High UCB (Encourage exploration)</td>
+                </tr>
+                <tr>
+                    <td>Frequently visited but low win rate</td>
+                    <td style="color: red;">Low</td>
+                    <td style="color: orange;">Low</td>
+                    <td>Low UCB</td>
+                </tr>
+            </table>
+            
+            <h2>5. Complete MCTS Algorithm</h2>
+            
+            <h3>5.1 Main Algorithm Structure</h3>
+            
+            <div class="concept-box">
+                <h4>MCTS Class Components:</h4>
+                <ul>
+                    <li><strong>search():</strong> Main entry point, iterates selection→expansion→simulation→backpropagation</li>
+                    <li><strong>select():</strong> Traverses tree using UCB until finding unexpanded node</li>
+                    <li><strong>expand():</strong> Creates new child node with canonical state ID</li>
+                    <li><strong>rollout():</strong> Random playout until terminal state</li>
+                    <li><strong>backpropagate():</strong> Updates statistics along path to root</li>
+                    <li><strong>get_best_move():</strong> Returns child with most visits or highest UCB</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Page 4: Implementation & Data Flow -->
+        <div class="page">
+            <h3>5.2 Symmetric Search Optimization</h3>
+            
+            <div class="success-box">
+                <strong>Key Innovation:</strong> Use canonical state representation to identify equivalent board positions
+            </div>
+            
+            <div class="concept-box">
+                <h4>Canonical ID Generation:</h4>
+                <ul>
+                    <li><strong>Axis Permutations:</strong> 3! = 6 ways to permute (depth, row, col)</li>
+                    <li><strong>Axis Flips:</strong> 2³ = 8 combinations of flipping each axis</li>
+                    <li><strong>Total Symmetries:</strong> 6 × 8 = 48 equivalent orientations</li>
+                    <li><strong>Canonical Selection:</strong> Choose lexicographically smallest serialization</li>
+                    <li><strong>Performance Gain:</strong> Reduces search space by 4-8× in practice</li>
+                </ul>
+            </div>
+            
+            <h3>5.3 Decision Criteria Comparison</h3>
+            
+            <table>
+                <tr>
+                    <th>Method</th>
+                    <th>Formula</th>
+                    <th>Characteristics</th>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-success">Most Visits</span><br>(Recommended)</td>
+                    <td><code>max(n.visits)</code></td>
+                    <td>Most robust, less affected by outliers</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-warning">Highest Average</span></td>
+                    <td><code>max(n.score/n.visits)</code></td>
+                    <td>Most aggressive, may be affected by sample size</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-primary">Highest UCB</span></td>
+                    <td><code>max(n.ucb_score())</code></td>
+                    <td>Balances exploration and exploitation</td>
+                </tr>
+            </table>
+            
+            <h2>6. Python Implementation Architecture</h2>
+            
+            <h3>6.1 Core Classes</h3>
+            
+            <table>
+                <tr>
+                    <th>Class</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>Board</code></td>
+                    <td>Stores and updates board state. Contains current grid layout and available positions.<br>
+                    <strong>Features:</strong> player1 (O), player2 (X), position({i,j,k})</td>
+                </tr>
+                <tr>
+                    <td><code>GameState</code></td>
+                    <td>Describes current game situation, including player turn, board state, and terminal status</td>
+                </tr>
+                <tr>
+                    <td><code>TreeNode</code></td>
+                    <td>Node data structure in search tree. Contains: state, parent, children, visit_count, total_value, is_terminal</td>
+                </tr>
+                <tr>
+                    <td><code>MCTS_3d</code></td>
+                    <td>Main MCTS algorithm class. Contains search() function that executes selection, rollout, and backpropagation</td>
+                </tr>
+            </table>
+            
+            <h3>6.2 Data Flow Diagram</h3>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <div style="text-align: center; line-height: 2.5;">
+                    <div style="display: inline-block; padding: 10px 20px; background: white; border: 2px solid #667eea; border-radius: 6px; margin: 5px;">User Input</div>
+                    <div style="color: #667eea; font-size: 20px;">↓</div>
+                    <div style="display: inline-block; padding: 10px 20px; background: white; border: 2px solid #667eea; border-radius: 6px; margin: 5px;">Board Update</div>
+                    <div style="color: #667eea; font-size: 20px;">↓</div>
+                    <div style="display: inline-block; padding: 10px 20px; background: #4ecdc4; color: white; border-radius: 6px; margin: 5px; font-weight: bold;">Board → Game State</div>
+                    <div style="color: #667eea; font-size: 20px;">↓</div>
+                    <div style="display: inline-block; padding: 10px 20px; background: #4ecdc4; color: white; border-radius: 6px; margin: 5px; font-weight: bold;">MCTS: Search(ini_state)</div>
+                    <div style="color: #667eea; font-size: 20px;">↓</div>
+                    <div style="background: #e8f4fd; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                        <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div style="padding: 10px 15px; background: white; border: 2px solid #667eea; border-radius: 6px;">Selection</div>
+                            <div style="color: #667eea; font-size: 20px;">→</div>
+                            <div style="padding: 10px 15px; background: white; border: 2px solid #667eea; border-radius: 6px;">Expansion</div>
+                            <div style="color: #667eea; font-size: 20px;">→</div>
+                            <div style="padding: 10px 15px; background: white; border: 2px solid #667eea; border-radius: 6px;">Rollout</div>
+                            <div style="color: #667eea; font-size: 20px;">→</div>
+                            <div style="padding: 10px 15px; background: white; border: 2px solid #667eea; border-radius: 6px;">Backpropagation</div>
+                        </div>
+                        <div style="text-align: center; margin-top: 10px; color: #666; font-size: 14px;">
+                            (Repeat until iteration limit)
+                        </div>
+                    </div>
+                    <div style="color: #667eea; font-size: 20px;">↓</div>
+                    <div style="display: inline-block; padding: 10px 20px; background: white; border: 2px solid #28a745; border-radius: 6px; margin: 5px; font-weight: bold;">Return Best Action</div>
+                </div>
+            </div>
+            
+            <h3>6.3 Summary</h3>
+            
+            <div class="success-box">
+                <strong>MCTS is a powerful decision algorithm that achieves near-optimal solutions within limited time through:</strong>
+                <ul>
+                    <li><strong>Smart Selection</strong> (UCB)</li>
+                    <li><strong>Progressive Expansion</strong> (avoid full expansion)</li>
+                    <li><strong>Random Simulation</strong> (evaluate state value)</li>
+                    <li><strong>Statistical Accumulation</strong> (backpropagation)</li>
+                    <li><strong>Symmetric Optimization</strong> (reduce search space)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
