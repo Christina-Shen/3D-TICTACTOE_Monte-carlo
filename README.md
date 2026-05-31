@@ -1,20 +1,21 @@
+
 # 3D tictactoe MCNT:
 
 ## MCTS algorithm and work flow : 
-![image](https://hackmd.io/_uploads/ryWzipM5xl.png)
+<img width="1570" height="1057" alt="image" src="https://github.com/user-attachments/assets/c53a501f-5079-436c-905b-d8c79820510f" />
+
 
 https://github.com/maksimKorzh/tictactoe-mtcs/blob/master/src/tictactoe/mcts.py
 
 
 https://github.com/JustinBieshaar/part-6-3d-tic-tac-toe
 
-![image](https://hackmd.io/_uploads/Byu1yny0lx.png)
 
 
-MCTS code:
 
-Callable 是 Python 型別註解（type hint） 系統的一部分，來自於 typing 模組。
-它的意思是「一個可被呼叫的函數」，並且說明「它接受哪些參數，回傳什麼型別」
+MCTS 演算法:
+
+<img width="1532" height="705" alt="image" src="https://github.com/user-attachments/assets/eb04b348-1c5b-4d06-b584-0b9dc5d027a9" />
 
 
 ## GameManager.cs: 
